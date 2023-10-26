@@ -1,0 +1,12 @@
+Dockerfile
+docker-compose.yml
+venv
+initdb
+helm
+__pycache__
+.idea
+.kube
+.env
+.git
+.gitignore
+.dockerignore
