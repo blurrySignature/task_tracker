@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-tracker
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: task-tracker
+spec:
+  replicas: {{ .Values.replicas.taskTracker }}
+  selector:
+    matchLabels:
+      app: task-tracker
+  template:
+    metadata:
+      labels:
+        app: task-tracker
+    spec:
+      containers:
+        - name: app
+          image: {{ .Values.taskTracker.image }}
+          ports:
+            - name: task-tracker
+              containerPort: {{ .Values.taskTracker.port }}
+          env:
+            - name: HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configMap.name }}
+                  key: {{ .Values.configMap.hostKey }}
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configMap.name }}
+                  key: {{ .Values.configMap.portKey }}
+            - name: PG_DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configMap.name }}
+                  key: {{ .Values.configMap.databaseKey }}
+            - name: PG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.app.name }}
+                  key: {{ .Values.secrets.app.userKey }}
+            - name: PG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.app.name }}
+                  key: {{ .Values.secrets.app.passwordKey }}
+          startupProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.taskTracker.port }}
+            initialDelaySeconds: {{ .Values.probes.postgres.startupProbe.initialDelaySeconds }}
+            failureThreshold: {{ .Values.probes.postgres.startupProbe.failureThreshold }}
+            periodSeconds: {{ .Values.probes.postgres.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.postgres.startupProbe.timeoutSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.taskTracker.port }}
+            initialDelaySeconds: {{ .Values.probes.postgres.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.postgres.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.postgres.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.taskTracker.port }}
+            initialDelaySeconds: {{ .Values.probes.postgres.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.postgres.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.postgres.readinessProbe.timeoutSeconds }}

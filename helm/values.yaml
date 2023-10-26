@@ -1,0 +1,73 @@
+# Default values for helm
+
+namespace: task-tracker
+
+nodePort: 30303
+
+replicas:
+  taskTracker: 1
+  postgres: 1
+
+initContainer:
+  image: busybox
+
+postgres:
+  image: postgres:15-alpine
+  port: 5432
+
+taskTracker:
+  image: blurrysignature/task-tracker-web:v1.0
+  port: 8000
+
+secrets:
+  pg:
+    name: pg-secrets
+    userKey: user
+    passwordKey: password
+  app:
+    name: app-secrets
+    userKey: user
+    passwordKey: password
+
+configMap:
+  name: app-config
+  hostKey: host
+  portKey: port
+  databaseKey: database
+
+probes:
+  postgres:
+    startupProbe:
+      initialDelaySeconds: 5
+      failureThreshold: 3
+      periodSeconds: 3
+      timeoutSeconds: 10
+    livenessProbe:
+      failureThreshold: 2
+      periodSeconds: 5
+      timeoutSeconds: 10
+    readinessProbe:
+      failureThreshold: 2
+      periodSeconds: 5
+      timeoutSeconds: 10
+  taskTracker:
+    startupProbe:
+      initialDelaySeconds: 10
+      failureThreshold: 5
+      periodSeconds: 3
+      timeoutSeconds: 10
+    livenessProbe:
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 10
+    readinessProbe:
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 10
+
+storageClassName: standart
+
+persistentVolumePath: /var/lib/docker/volumes/task_tracker_postgres_data/_data
+
+initdbVolumeHostPath:
+  path: /home/pasha/Projects/task_tracker/initdb

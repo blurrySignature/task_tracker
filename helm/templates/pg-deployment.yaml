@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: postgres
+spec:
+  replicas: {{ .Values.replicas.postgres }}
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      initContainers:
+        - name: pg-init
+          image: {{ .Values.initContainer.image }}
+          command:
+            - /bin/sh
+            - -c
+            - cp /docker-entrypoint-initdb.d/initdb.sh /shared/ && chmod 755 /shared/initdb.sh
+          volumeMounts:
+            - name: from-host
+              mountPath: /docker-entrypoint-initdb.d
+            - name: to-postgres
+              mountPath: /shared
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.postgres.port }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.pg.name }}
+                  key: {{ .Values.secrets.pg.userKey }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.pg.name }}
+                  key: {{ .Values.secrets.pg.passwordKey }}
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configMap.name }}
+                  key: {{ .Values.configMap.databaseKey }}
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "task_tracker"]
+            initialDelaySeconds: {{ .Values.probes.postgres.startupProbe.initialDelaySeconds }}
+            failureThreshold: {{ .Values.probes.postgres.startupProbe.failureThreshold }}
+            periodSeconds: {{ .Values.probes.postgres.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.postgres.startupProbe.timeoutSeconds }}
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "task_tracker"]
+            failureThreshold: {{ .Values.probes.postgres.livenessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.probes.postgres.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.postgres.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "task_tracker"]
+            failureThreshold: {{ .Values.probes.postgres.readinessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.probes.postgres.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.postgres.readinessProbe.timeoutSeconds }}
+          volumeMounts:
+            - name: pg-data
+              mountPath: /var/lib/postgresql/data
+            - name: to-postgres
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: pg-data
+          persistentVolumeClaim:
+            claimName: pg-data-pvc
+        - name: from-host
+          hostPath:
+            path: {{ .Values.initdbVolumeHostPath }}
+        - name: to-postgres
+          emptyDir: {}
