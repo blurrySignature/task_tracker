@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewpoint" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %} | Task Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <div class="container">
+        <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+            <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+                <span class="fs-4">Simple Task Tracker</span>
+            </a>
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                    <a href="/" class="nav-link {% if request.path == '/' %} active {% endif %}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/tasks" class="nav-link {% if request.path == '/tasks' %} active {% endif %}">Tasks</a>
+                </li>
+            </ul>
+        </header>
+    </div>
+
+    {% block index %}{% endblock %}
+    {% block error %}{% endblock %}
+    {% block tasks %}{% endblock %}
+
+    <div class="container">
+        <footer class="py-3 my-4">
+            <ul class="nav justify-content-center border-bottom pb-3 mb-3"></ul>
+            <div>
+                <p class="text-center text-body-secondary">© 2023, by
+                    <a href="https://github.com/blurrySignature" target="_blank"
+                       class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">blurrySignature</a>
+                </p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

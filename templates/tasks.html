@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Tasks
+{% endblock %}
+
+{% block tasks %}
+
+<div class="container p-4">
+    <div class="row">
+        <div class="col-12 mb-3">
+            <button class="btn btn btn-outline-dark rounded-pill fw-bolder px-3" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasBottomCreate" aria-controls="offcanvasBottomCreate">+ new</button>
+            <div class="offcanvas offcanvas-bottom" data-bs-scroll="true" tabindex="-1" id="offcanvasBottomCreate" aria-labelledby="offcanvasBottomLabelCreate">
+                <div class="container">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title fs-5" id="offcanvasBottomLabelCreate">Create new task</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <form action="/tasks" method="POST">
+                            <div class="mb-3">
+                                <textarea class="form-control" id="TextareaForCreateRecord" name="TextareaForCreateRecord" rows="1"
+                                          placeholder="Enter your task here..."></textarea>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                    <button class="btn btn btn-outline-dark rounded-pill fw-bolder col-3" type="submit">create</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container p-4" style="flex-grow: 1;">
+    {% for record in records_list %}
+    {% with record_index=loop.index %}
+        <div class="row">
+            <div class="card col-9 shadow mb-5">
+                <div class="card-body">
+                    <p class="card-title fs-4"> Task № {{ record_index }} </p>
+                    <p class="card-text fst-italic fs-4">
+                        {% if record.is_completed %}
+                            <del>{{ record.note }}</del>
+                        {% else %}
+                            {{ record.note }}
+                        {% endif %}
+                    </p>
+                    <div class="fw-light d-flex justify-content-end">Creation time: {{ record.date.strftime('%d.%m.%Y %H:%M') }}</div>
+                </div>
+            </div>
+
+            <div class="col-1">
+                <button type="button" class="btn btn-outline-warning w-100 rounded-pill fw-bolder" data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasBottom{{ record_index }}" aria-controls="offcanvasBottom{{ record_index }}">edit</button>
+                <div class="offcanvas offcanvas-bottom" data-bs-scroll="true" tabindex="-1" id="offcanvasBottom{{ record_index }}" aria-labelledby="offcanvasBottomLabel{{ record_index }}">
+                    <div class="container">
+                        <div class="offcanvas-header">
+                            <h5 class="offcanvas-title fs-5" id="offcanvasBottomLabel{{ record_index }}">Edit task № {{ record_index }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <form action="/tasks/update/{{ record.id }}" method="POST">
+                            <div class="offcanvas-body">
+                                <div class="mb-3">
+                                    <textarea class="form-control" id="exampleFormControlTextarea{{ record_index }}"
+                                              name="TextareaForUpdateRecord" rows="1" placeholder="Edit your task here...">{{ record.note }}</textarea>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button class="btn btn-outline-success rounded-pill fw-bolder col-3" type="submit">apply</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-1">
+                <button type="button" class="btn btn-outline-danger w-100 rounded-pill fw-bolder" data-bs-toggle="modal" data-bs-target="#exampleModal{{ record_index }}">delete</button>
+                <div class="modal fade" id="exampleModal{{ record_index }}" tabindex="-1" aria-labelledby="exampleModalLabel{{ record_index }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content rounded-4 shadow">
+                            <form action="/tasks/delete/{{ record.id }}" method="POST">
+                                <div class="modal-header border-bottom-0">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel{{ record_index }}">Task deleting</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body py-0">
+                                    <p>Are you sure you want to delete <b>task № {{ record_index }}?</b></p>
+                                </div>
+                                <div class="modal-footer flex-column align-items-stretch w-100 gap-2 pb-3 border-top-0">
+                                    <button type="submit" class="btn btn-danger">I want to delete this task</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-1">
+                <form action="/tasks/update/{{ record.id }}" method="POST">
+                {% if record.is_completed %}
+                    <button class="btn btn-success activate w-100 rounded-pill fw-bolder" type="submit" name="ButtonIsCompleted" value="off">done</button>
+                {% else %}
+                    <button class="btn btn-outline-success activate w-100 rounded-pill fw-bolder" type="submit" name="ButtonIsCompleted" value="on">done</button>
+                {% endif %}
+                </form>
+            </div>
+        </div>
+    {% endwith %}
+    {% endfor %}
+</div>
+
+{% endblock %}
